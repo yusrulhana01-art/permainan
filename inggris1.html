@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Latihan Mengurutkan Kata (Drag & Drop)</title>
+  <style>
+    :root{
+      --dark-green: #0b6623; /* skin aplikasi */
+      --light-green: #d9f2d9; /* latar belakang layar */
+      --panel: #eaf6ea;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:var(--light-green);display:flex;align-items:center;justify-content:center;padding:24px}
+
+    .app{
+      width:900px;
+      max-width:96vw;
+      background:linear-gradient(180deg,var(--dark-green),#094d1a 120%);
+      color:#fff;
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    h1{margin:0 0 8px;font-size:20px}
+    p.instructions{margin:0 0 16px;opacity:0.95}
+
+    .board{display:flex;gap:18px;align-items:flex-start}
+
+    .words{
+      background:rgba(255,255,255,0.06);
+      padding:12px;border-radius:8px;min-width:260px;flex:0 0 260px;
+      box-sizing:border-box;min-height:120px;
+    }
+    .word{
+      display:inline-block;padding:8px 12px;margin:6px;border-radius:999px;background:rgba(255,255,255,0.12);cursor:grab;user-select:none;
+      white-space:nowrap;font-weight:600;border:1px solid rgba(255,255,255,0.08)
+    }
+    .word:active{cursor:grabbing}
+
+    .drop-area{
+      flex:1;background:var(--panel);color:#0b6623;padding:12px;border-radius:8px;min-height:120px;box-sizing:border-box;
+      display:flex;flex-direction:column;gap:8px;align-items:stretch
+    }
+    label{font-weight:700;color:#083d17}
+
+    textarea#answer{
+      width:100%;height:2cm;resize:none;border-radius:6px;padding:6px;border:2px dashed rgba(6,94,26,0.35);font-size:14px;box-sizing:border-box;
+      font-family:inherit;
+    }
+
+    .drop-area.dragover textarea#answer{outline:3px solid rgba(11,102,35,0.25)}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+    button{background:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer}
+    button.primary{background:#083d17;color:#fff}
+
+    .feedback{margin-top:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.06);min-height:40px}
+
+    .small{font-size:13px;opacity:0.95}
+
+    @media (max-width:700px){.board{flex-direction:column}.words{flex:unset;width:100%}}
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Latihan mengurutkan kata">
+    <h1>Latihan: Urutkan Kata (Drag &amp; Drop)</h1>
+    <p class="instructions small">Drag kata-kata dari kotak kiri ke area teks. Setelah dijatuhkan, kata di sumber akan hilang. Urutkan menjadi: <strong>I, am, going, to, the, market</strong>.</p>
+
+    <div class="board">
+      <div class="words" id="source" aria-label="Kata acak - tarik ke area">
+        <!-- kata akan diisi lewat JS -->
+      </div>
+
+      <div class="drop-area" id="dropArea">
+        <label for="answer">Area urutan</label>
+        <textarea id="answer" placeholder="Tarik kata satu-per-satu ke sini..." readonly></textarea>
+
+        <div class="controls">
+          <button id="reset">Ulangi</button>
+          <button id="check" class="primary">Hasil</button>
+        </div>
+
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const correct = ["I","am","going","to","the","market"];
+      const source = document.getElementById('source');
+      const answer = document.getElementById('answer');
+      const feedback = document.getElementById('feedback');
+      const dropArea = document.getElementById('dropArea');
+      const resetBtn = document.getElementById('reset');
+      const checkBtn = document.getElementById('check');
+
+      function shuffle(array){
+        for(let i=array.length-1;i>0;i--){
+          const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]
+        }
+        return array;
+      }
+
+      function populate(){
+        source.innerHTML='';
+        const shuffled = shuffle([...correct]);
+        shuffled.forEach((w,i)=>{
+          const el = document.createElement('button');
+          el.type='button';
+          el.className='word';
+          el.setAttribute('draggable','true');
+          el.setAttribute('aria-grabbed','false');
+          el.textContent=w;
+          el.id = 'word-'+i+'-'+w;
+
+          el.addEventListener('dragstart', (ev)=>{
+            ev.dataTransfer.setData('text/plain', w);
+            ev.dataTransfer.effectAllowed = 'move';
+            el.setAttribute('aria-grabbed','true');
+            dropArea.classList.add('dragover');
+          });
+
+          el.addEventListener('dragend', ()=>{
+            el.setAttribute('aria-grabbed','false');
+            dropArea.classList.remove('dragover');
+          });
+
+          source.appendChild(el);
+        });
+
+        answer.value='';
+        feedback.textContent='';
+      }
+
+      dropArea.addEventListener('dragover', (e)=>{
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        dropArea.classList.add('dragover');
+      });
+      dropArea.addEventListener('dragleave', ()=>{dropArea.classList.remove('dragover')});
+
+      dropArea.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        const text = e.dataTransfer.getData('text/plain');
+        if(!text) return;
+
+        const current = answer.value.trim();
+        if(current.length===0){
+          answer.value = text;
+        } else {
+          answer.value = current + ', ' + text;
+        }
+
+        const buttons = Array.from(source.querySelectorAll('.word'));
+        const found = buttons.find(b=>b.textContent === text);
+        if(found){
+          found.remove();
+        }
+
+        checkBtn.focus();
+      });
+
+      checkBtn.addEventListener('click', ()=>{
+        const parts = answer.value.split(',').map(s=>s.trim()).filter(s=>s.length>0);
+        const ok = parts.length === correct.length && parts.every((p,i)=>p===correct[i]);
+        if(ok){
+          feedback.style.color = '#02360f';
+          feedback.textContent = 'Hebat. Jawaban anda benar';
+        } else {
+          feedback.style.color = '#3b0a0a';
+          feedback.textContent = 'Maaf jawaban Anda salah. Ulangi lagi';
+        }
+      });
+
+      resetBtn.addEventListener('click', ()=>{
+        populate();
+      });
+
+      populate();
+
+      source.addEventListener('keydown', (e)=>{
+        if(e.target.classList && e.target.classList.contains('word') && (e.key === 'Enter' || e.key === ' ')){
+          e.preventDefault();
+          const text = e.target.textContent;
+          const current = answer.value.trim();
+          answer.value = current.length===0 ? text : (current + ', ' + text);
+          e.target.remove();
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
