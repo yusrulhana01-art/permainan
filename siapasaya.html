@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TEKA-TEKI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 50px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 36px;
+    }
+
+    p {
+      font-size: 18px;
+      margin: 20px 0;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+      border: 2px solid #2c3e50;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    button:hover {
+      background-color: #34495e;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .benar {
+      color: green;
+    }
+
+    .salah {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>TEKA-TEKI</h1>
+
+  <p>
+    Aku adalah seekor hewan. Jumlah kakiku ada empat buah. Aku memiliki ekor.  
+    Aku juga memiliki belalai.  
+    <br><br><strong>Siapakah aku?</strong>
+  </p>
+
+  <input type="text" id="jawaban" placeholder="Tulis jawabanmu di sini...">
+  <button onclick="periksaJawaban()">Periksa</button>
+
+  <div id="feedback"></div>
+
+  <script>
+    function periksaJawaban() {
+      const jawaban = document.getElementById('jawaban').value.trim().toLowerCase();
+      const feedback = document.getElementById('feedback');
+
+      if (jawaban === "gajah") {
+        feedback.textContent = "Jawaban Anda benar, hebat!";
+        feedback.className = "benar";
+      } else {
+        feedback.textContent = "Jawaban Anda salah, silahkan coba lagi.";
+        feedback.className = "salah";
+      }
+    }
+  </script>
+
+</body>
+</html>
